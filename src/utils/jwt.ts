@@ -1,11 +1,8 @@
-
+import { JWTPayloadforUserId } from '../types/jwt.type';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
-interface JWTPayloadforUserId{
-  userId:string
-}
 
 export const generateToken =  (payload: JWTPayloadforUserId) : string => {
   const token:string = jwt.sign(payload, JWT_SECRET, {expiresIn: '1d',});
