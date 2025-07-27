@@ -1,8 +1,11 @@
-import { generateToken } from "../utils/jwt";
+import { generateToken } from "../utils/jwt.js";
 import { NextFunction, Request, Response } from "express";
-import { LoginUserDTO, RegisterUserDTO } from "../dtos/auth.dto";
+import { LoginUserDTO, RegisterUserDTO, ResendEmailDTO, VerifyTokenDTO } from "../dtos/auth.dto.js";
 import bcrypt from "bcrypt";
-import { prisma } from "../libs/prisma";
+import { prisma } from "../libs/prisma.js";
+import { tokenForEmail, verifyEmailToken } from "../utils/email.tokengeneration.js";
+import { bodyForEmailVerification } from "../utils/email.templates.js";
+import { sendMail } from "../utils/send.email.js";
 
 // Register Controller
 export const register = async (
@@ -29,6 +32,18 @@ export const register = async (
       },
     });
 
+    const token = tokenForEmail({userId : newUser.id})
+    const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
+
+
+    const html = bodyForEmailVerification(verificationURL)
+    const subject = "Please Verify your email!"
+    const mailSendInfo = await sendMail({
+        to : newUser.email,
+        subject,
+        html
+    })
+
     res.status(201).send({
       message: `${newUser.name} registered successfully`,
       data: {
@@ -36,6 +51,7 @@ export const register = async (
         name: newUser.name,
         email: newUser.email,
       },
+      verificationEmailInfo : {sentTo : mailSendInfo.accepted[0] || null}
     });
   } catch (error) {
     next(error);
@@ -62,7 +78,7 @@ export const login = async (
     if (!isPassCorrect) {
       return next({ status: 400, message: "Incorrect password" });
     }
-
+    //generates a new token
     const token = generateToken({ userId: userFromDB.id });
 
     res.status(200).send({
@@ -74,3 +90,71 @@ export const login = async (
     next(error);
   }
 };
+
+//resend email verification link controller
+export const resendToken = async (req:Request<{},{},ResendEmailDTO>,res:Response,next:NextFunction) :Promise<void> =>{
+  try{
+    const email = req.body.email
+
+  const userFromDB = await prisma.user.findUnique({
+   where : {
+    email
+   }
+  })
+  if(!userFromDB){
+    return next({status : 404 , message : "Cant find any registered user with the provided email"})
+  }
+  const token = tokenForEmail({userId : userFromDB.id})
+  const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
+
+
+    const html = bodyForEmailVerification(verificationURL)
+    const subject = "Please Verify your email!"
+    const mailSendInfo = await sendMail({
+        to : userFromDB.email,
+        subject,
+        html
+    })
+
+    res.status(200).send({
+      success : true,
+      message :"Verification Link sent succesfully!",
+      verificationEmailInfo : {sentTo : mailSendInfo.accepted[0] || null}
+    })
+  }catch(e){
+    next(e)
+  }
+
+}
+
+//verify token controller 
+export const verifyEmailFromToken =  async (req:Request<{},{},{},VerifyTokenDTO>,res:Response,next:NextFunction) : Promise<void> =>{
+ try{
+   const token = req.query.token 
+
+   if(!token){
+    return next({status : 400,message:"token is required"})
+   }
+  const decode = verifyEmailToken(token)
+
+  const userId = decode.userId
+  const userFromDB = await prisma.user.findUnique({
+    where : {id : userId}
+  })
+  if(!userFromDB){
+    return next({status:404,message : "Invalid Token"})
+  }
+  if(userFromDB.isEmailVerified){
+    return next({status:200,message:"Email already verified"})
+  }
+  await prisma.user.update({
+    where : {id : userId},
+    data : { isEmailVerified : true}
+  })
+
+  res.status(200).send({message : "Email Verified Succesfully"}) 
+ }catch(err){
+  next(err)
+ }
+
+}

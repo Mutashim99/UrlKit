@@ -7,7 +7,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -21,6 +20,7 @@ model User{
   name String 
   email String @unique
   passwordHash String 
+  isEmailVerified Boolean @default(false)
 
   url Url[]
 }
