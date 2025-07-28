@@ -4,7 +4,7 @@ declare global{
         interface Request{
             user?:{
                 userId : string
-            }
+            } | null,
         }
     }
 }
