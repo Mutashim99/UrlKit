@@ -1,4 +1,4 @@
-import { JWTPayloadforUserId } from '../types/jwt.type';
+import { JWTPayloadforUserId } from '../types/jwt.type.js';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET!;

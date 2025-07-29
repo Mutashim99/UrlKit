@@ -73,11 +73,17 @@ export const redirectToUrl = async (req, res, next) => {
         const { slug } = req.params;
         const originalUrlFromDB = await prisma.url.findUnique({
             where: {
-                shortSlug: slug
+                shortSlug: slug,
             }
         });
         if (!originalUrlFromDB) {
             return next({ status: 404, message: "cant find the URL with the given slug provided" });
+        }
+        if (originalUrlFromDB.status !== 'ACTIVE') {
+            return next({
+                status: 403,
+                message: `URL is ${originalUrlFromDB.status.toLowerCase()}`,
+            });
         }
         const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || null;
         const userAgent = req.headers['user-agent'] || null;
@@ -115,6 +121,7 @@ export const redirectToUrl = async (req, res, next) => {
         next(err);
     }
 };
+// this endpoing will be invoked by the azure function after every hour or we can change that to be like 30 mins, for cron job
 export const expireUrl = async (req, res, next) => {
     const now = new Date;
     const findExpiredAndUpdate = await prisma.url.updateMany({
