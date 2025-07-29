@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CustomSlugShortenerDTO, NonCustomSlugShortenerDTO } from "../dtos/url.dto.js";
 import { generateUniqueSlug } from "../utils/randomslug.js";
-import { prisma } from "../libs/prisma.js";
+import  prisma  from "../libs/prisma.js";
 
 // url shortener controller for non custom slug POST /api/shorten
 export const nonCustomShorten = async (req:Request<{},{},NonCustomSlugShortenerDTO>,res:Response,next:NextFunction) : Promise<void> =>{

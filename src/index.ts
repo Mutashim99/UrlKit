@@ -1,5 +1,6 @@
 import express from 'express'
-import 'dotenv/config'
+import dotenv from 'dotenv';
+dotenv.config();
 import { authenticate, optionalAuth } from './middlewares/authenticate.middleware.js'
 import { errorHandler } from './middlewares/error.middleware.js'
 import { authRouter } from './routes/auth.route.js'

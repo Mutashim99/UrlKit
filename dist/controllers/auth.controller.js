@@ -1,6 +1,6 @@
 import { generateToken } from "../utils/jwt.js";
 import bcrypt from "bcrypt";
-import { prisma } from '../libs/prisma.js';
+import prisma from '../libs/prisma.js';
 import { tokenForEmail, verifyEmailToken } from "../utils/email.tokengeneration.js";
 import { bodyForEmailVerification } from "../utils/email.templates.js";
 import { sendMail } from "../utils/send.email.js";
