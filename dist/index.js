@@ -5,7 +5,7 @@ import { optionalAuth } from './middlewares/authenticate.middleware.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { authRouter } from './routes/auth.route.js';
 import { urlRouter } from './routes/url.route.js';
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 const app = express();
 app.use(express.json());
 app.use("/api/auth", authRouter);

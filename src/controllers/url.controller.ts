@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CustomSlugShortenerDTO, NonCustomSlugShortenerDTO } from "../dtos/url.dto.js";
 import { generateUniqueSlug } from "../utils/randomslug.js";
 import  prisma  from "../libs/prisma.js";
-
+import axios from 'axios'
 // url shortener controller for non custom slug POST /api/shorten
 export const nonCustomShorten = async (req:Request<{},{},NonCustomSlugShortenerDTO>,res:Response,next:NextFunction) : Promise<void> =>{
     try{
@@ -82,9 +82,41 @@ export const redirectToUrl = async (req:Request,res:Response,next:NextFunction) 
             shortSlug: slug
         }
     })
+
     if(!originalUrlFromDB){
        return next({status : 404,message : "cant find the URL with the given slug provided"})
     }
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || null;
+    const userAgent = req.headers['user-agent'] || null;
+
+    // GeoIP Lookup
+    let country = null;
+    let city = null;
+    try {
+      const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
+      country = geoRes.data.country_name || null;
+      city = geoRes.data.city || null;
+    } catch (geoErr) {
+      next({status:404,message:"Error occured when fetching api details"})
+    }
+    await prisma.url.update({
+      where: { shortSlug: slug },
+      data: {
+        clickCount: {
+          increment: 1,
+        },
+      },
+    });
+
+    await prisma.click.create({
+      data: {
+        urlId: originalUrlFromDB.id,
+        ip,
+        userAgent,
+        country,
+        city,
+      },
+    });
 
     res.redirect(301,originalUrlFromDB.orignalUrl)
     }catch(err){
@@ -107,6 +139,6 @@ export const expireUrl = async (req:Request,res:Response,next:NextFunction) : Pr
     })
     res.status(200).send({
         success : true,
-        updateCount : findExpiredAndUpdate.count
+        updateCount : findExpiredAndUpdate.count,
     })
 }
