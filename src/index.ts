@@ -5,7 +5,7 @@ import { errorHandler } from './middlewares/error.middleware.js'
 import { authRouter } from './routes/auth.route.js'
 import {urlRouter} from './routes/url.route.js'
 
-// const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000
 
 const app = express()
 app.use(express.json())
@@ -16,6 +16,6 @@ app.use('/api/url',optionalAuth ,urlRouter)
 
 
 app.use(errorHandler)
-app.listen(8080,()=>{
-    console.log(`running on 8080 `);
+app.listen(PORT,()=>{
+    console.log(`running on ${PORT} `);
 })
