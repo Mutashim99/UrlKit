@@ -133,7 +133,7 @@ export const redirectToUrl = async (req:Request,res:Response,next:NextFunction) 
 }
 // this endpoing will be invoked by the azure function after every hour or we can change that to be like 30 mins, for cron job
 export const expireUrl = async (req:Request,res:Response,next:NextFunction) : Promise<void> =>{
-    const now = new Date
+    const now = new Date()
     const findExpiredAndUpdate = await prisma.url.updateMany({
         where:{
             expiresAt : {
