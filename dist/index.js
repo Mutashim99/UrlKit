@@ -5,6 +5,7 @@ import { errorHandler } from './middlewares/error.middleware.js';
 import { authRouter } from './routes/auth.route.js';
 import { urlRouter } from './routes/url.route.js';
 import userRouter from './routes/user.route.js';
+import './workers/email.worker.js'; // for worker to run
 const PORT = process.env.PORT || 8080;
 const app = express();
 app.use(express.json());
