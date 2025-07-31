@@ -6,6 +6,7 @@ import prisma from '../libs/prisma.js'
 import { tokenForEmail, verifyEmailToken } from "../utils/email.tokengeneration.js";
 import { bodyForEmailVerification } from "../utils/email.templates.js";
 import { sendMail } from "../utils/send.email.js";
+import { emailQueue } from "../queues/email.queue.js";
 
 // Register Controller
 export const register = async (
@@ -38,11 +39,17 @@ export const register = async (
 
     const html = bodyForEmailVerification(verificationURL)
     const subject = "Please Verify your email!"
-    const mailSendInfo = await sendMail({
-        to : newUser.email,
-        subject,
-        html
+    await emailQueue.add('sendVerificationEmail',{
+      to:newUser.email,
+      subject,
+      html
     })
+    console.log('Email job added to queue');
+    // const mailSendInfo = await sendMail({
+    //     to : newUser.email,
+    //     subject,
+    //     html
+    // })
 
     res.status(201).send({
       message: `${newUser.name} registered successfully`,
@@ -51,7 +58,7 @@ export const register = async (
         name: newUser.name,
         email: newUser.email,
       },
-      verificationEmailInfo : {sentTo : mailSendInfo.accepted[0] || null}
+      verificationEmailInfo : "Queued to send the email"
     });
   } catch (error) {
     next(error);

@@ -7,7 +7,9 @@ import axios from 'axios'
 export const nonCustomShorten = async (req:Request<{},{},NonCustomSlugShortenerDTO>,res:Response,next:NextFunction) : Promise<void> =>{
     try{
     const {originalUrl,expiresAt} = req.body
-
+        if(!originalUrl){
+            return next({status : 400,message : "Url is required"})
+        }
     const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
     const userId = req.user?.userId
    const randomSlug =  await generateUniqueSlug(prisma)
@@ -39,6 +41,10 @@ export const nonCustomShorten = async (req:Request<{},{},NonCustomSlugShortenerD
 export const customShorten = async(req:Request<{},{},CustomSlugShortenerDTO>,res:Response,next:NextFunction) : Promise<void>=>{
     try{
         const {orignalUrl,expiresAt,customSlug} = req.body
+        if(!orignalUrl){
+            return next({status : 400,message : "Url is required"})
+        }
+        
         const isSlugAvailable = await prisma.url.findUnique({
             where:{
                 shortSlug : customSlug

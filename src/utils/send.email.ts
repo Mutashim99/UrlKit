@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import nodemailer from 'nodemailer'
 import SMTPTransport from 'nodemailer/lib/smtp-transport'
 import { sendEmailOption } from '../types/email.options'
@@ -15,7 +16,8 @@ const transporter = nodemailer.createTransport({
 } as SMTPTransport.Options) 
 
 export const sendMail = async(emailOptions : sendEmailOption) : Promise<SMTPTransport.SentMessageInfo> => {
-    const info = await transporter.sendMail({
+    try{
+        const info = await transporter.sendMail({
         from : process.env.EMAIL_FROM,
         html : emailOptions.html,
         to : emailOptions.to,
@@ -23,4 +25,8 @@ export const sendMail = async(emailOptions : sendEmailOption) : Promise<SMTPTran
     })
     console.log(info);
     return info
+    }catch(e){
+        console.error("sendMail failed:", e);
+        throw e
+    }
 }

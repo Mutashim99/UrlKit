@@ -5,6 +5,9 @@ import axios from 'axios';
 export const nonCustomShorten = async (req, res, next) => {
     try {
         const { originalUrl, expiresAt } = req.body;
+        if (!originalUrl) {
+            return next({ status: 400, message: "Url is required" });
+        }
         const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
         const userId = req.user?.userId;
         const randomSlug = await generateUniqueSlug(prisma);
@@ -34,6 +37,9 @@ export const nonCustomShorten = async (req, res, next) => {
 export const customShorten = async (req, res, next) => {
     try {
         const { orignalUrl, expiresAt, customSlug } = req.body;
+        if (!orignalUrl) {
+            return next({ status: 400, message: "Url is required" });
+        }
         const isSlugAvailable = await prisma.url.findUnique({
             where: {
                 shortSlug: customSlug
@@ -123,7 +129,7 @@ export const redirectToUrl = async (req, res, next) => {
 };
 // this endpoing will be invoked by the azure function after every hour or we can change that to be like 30 mins, for cron job
 export const expireUrl = async (req, res, next) => {
-    const now = new Date;
+    const now = new Date();
     const findExpiredAndUpdate = await prisma.url.updateMany({
         where: {
             expiresAt: {

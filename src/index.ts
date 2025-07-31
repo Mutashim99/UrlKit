@@ -14,7 +14,6 @@ app.use(express.json())
 app.use("/api/auth",authRouter)
 app.use('/api/url',optionalAuth ,urlRouter)
 app.use('/api/user',authenticate, userRouter)
-
 app.use(errorHandler)
 app.listen(PORT,()=>{
     console.log(`running on ${PORT} `);
