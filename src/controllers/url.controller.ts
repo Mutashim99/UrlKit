@@ -180,6 +180,9 @@ export const findBySlug = async (
       include: {
         clicks: true,
       },
+      orderBy:{
+        createdAt : "desc"
+      }
     });
     res.status(200).send({ data: urlsForLocalHistory });
   } catch (e) {
