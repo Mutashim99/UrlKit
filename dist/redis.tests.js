@@ -1,6 +1,6 @@
 import IORedis from "ioredis";
 // ✅ NO second parameter at all — let rediss:// handle TLS implicitly
-const redis = new IORedis("redis://default:bg4kXqn3tryvWKbZF7QaWQfIbDWaEpU5@redis-15862.c252.ap-southeast-1-1.ec2.redns.redis-cloud.com:15862");
+const redis = new IORedis("MOCK REDIS URL LMAO");
 async function test() {
     try {
         await redis.set("foo", "bar");

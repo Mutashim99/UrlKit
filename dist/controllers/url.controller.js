@@ -1,6 +1,6 @@
 import { generateUniqueSlug } from "../utils/randomslug.js";
 import prisma from "../libs/prisma.js";
-import axios from 'axios';
+import axios from "axios";
 // url shortener controller for non custom slug POST /api/shorten
 export const nonCustomShorten = async (req, res, next) => {
     try {
@@ -12,7 +12,10 @@ export const nonCustomShorten = async (req, res, next) => {
         const userId = req.user?.userId;
         const randomSlug = await generateUniqueSlug(prisma);
         if (!randomSlug) {
-            return next({ status: 400, message: "can not generate the random string retry again" });
+            return next({
+                status: 400,
+                message: "can not generate the random string retry again",
+            });
         }
         const created = await prisma.url.create({
             data: {
@@ -20,14 +23,14 @@ export const nonCustomShorten = async (req, res, next) => {
                 expiresAt: expiresAtDate,
                 shortSlug: randomSlug,
                 userId: userId,
-            }
+            },
         });
         res.status(201).send({
             success: true,
             message: "succesfully created the random short url",
             data: {
-                shortenUrl: `${process.env.FRONTEND_URL}/${created.shortSlug}`
-            }
+                shortenUrl: `${process.env.FRONTEND_URL}/${created.shortSlug}`,
+            },
         });
     }
     catch (err) {
@@ -42,16 +45,22 @@ export const customShorten = async (req, res, next) => {
         }
         const isSlugAvailable = await prisma.url.findUnique({
             where: {
-                shortSlug: customSlug
-            }
+                shortSlug: customSlug,
+            },
         });
         const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
         const userId = req.user?.userId;
         if (!userId || userId === undefined) {
-            return next({ status: 401, message: "Unauthorize, User must be logged in to create custom urls" });
+            return next({
+                status: 401,
+                message: "Unauthorize, User must be logged in to create custom urls",
+            });
         }
         if (isSlugAvailable) {
-            return next({ status: 400, message: "This Custom Slug is Taken try another one" });
+            return next({
+                status: 400,
+                message: "This Custom Slug is Taken try another one",
+            });
         }
         const newCustomShortUrl = await prisma.url.create({
             data: {
@@ -59,15 +68,15 @@ export const customShorten = async (req, res, next) => {
                 shortSlug: customSlug,
                 userId: userId,
                 isCustom: true,
-                expiresAt: expiresAtDate
-            }
+                expiresAt: expiresAtDate,
+            },
         });
         res.status(201).send({
             success: true,
-            message: 'Custom short URL created successfully',
+            message: "Custom short URL created successfully",
             data: {
-                shortenUrl: `${process.env.FRONTEND_URL}/${newCustomShortUrl.shortSlug}`
-            }
+                shortenUrl: `${process.env.FRONTEND_URL}/${newCustomShortUrl.shortSlug}`,
+            },
         });
     }
     catch (err) {
@@ -80,19 +89,24 @@ export const redirectToUrl = async (req, res, next) => {
         const originalUrlFromDB = await prisma.url.findUnique({
             where: {
                 shortSlug: slug,
-            }
+            },
         });
         if (!originalUrlFromDB) {
-            return next({ status: 404, message: "cant find the URL with the given slug provided" });
+            return next({
+                status: 404,
+                message: "cant find the URL with the given slug provided",
+            });
         }
-        if (originalUrlFromDB.status !== 'ACTIVE') {
+        if (originalUrlFromDB.status !== "ACTIVE") {
             return next({
                 status: 403,
                 message: `URL is ${originalUrlFromDB.status.toLowerCase()}`,
             });
         }
-        const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || null;
-        const userAgent = req.headers['user-agent'] || null;
+        const ip = req.headers["x-forwarded-for"]?.split(",")[0] ||
+            req.socket.remoteAddress ||
+            null;
+        const userAgent = req.headers["user-agent"] || null;
         // GeoIP Lookup
         let country = null;
         let city = null;
@@ -127,19 +141,38 @@ export const redirectToUrl = async (req, res, next) => {
         next(err);
     }
 };
+export const findBySlug = async (req, res, next) => {
+    try {
+        const slugs = req.body.slugs;
+        const urlsForLocalHistory = await prisma.url.findMany({
+            where: {
+                shortSlug: {
+                    in: slugs,
+                },
+            },
+            include: {
+                clicks: true,
+            },
+        });
+        res.status(200).send({ data: urlsForLocalHistory });
+    }
+    catch (e) {
+        next(e);
+    }
+};
 // this endpoing will be invoked by the azure function after every hour or we can change that to be like 30 mins, for cron job
 export const expireUrl = async (req, res, next) => {
     const now = new Date();
     const findExpiredAndUpdate = await prisma.url.updateMany({
         where: {
             expiresAt: {
-                lt: now
+                lt: now,
             },
-            status: "ACTIVE"
+            status: "ACTIVE",
         },
         data: {
-            status: "EXPIRED"
-        }
+            status: "EXPIRED",
+        },
     });
     res.status(200).send({
         success: true,
