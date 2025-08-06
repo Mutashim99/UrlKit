@@ -2,14 +2,15 @@ import { Worker } from "bullmq";
 import IORedis from "ioredis";
 import { sendMail } from "../utils/send.email.js";
 import 'dotenv/config.js'
-
+import {connection} from '../queues/email.queue.js'
 const redisURl = process.env.REDIS_URL!
 
-redisURl? console.log(redisURl) : console.log("cant get redis url");
+redisURl? console.log(  "redis url working") : console.log("cant get redis url");
 
-const connection = new IORedis(redisURl, {
-  maxRetriesPerRequest: null,
-});
+// const connection = new IORedis(redisURl, {
+//   maxRetriesPerRequest: 1,
+//   enableReadyCheck: false,
+// });
 const worker = new Worker(
   "emailQueue",
   async (job) => {

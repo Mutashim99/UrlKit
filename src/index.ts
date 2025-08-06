@@ -6,7 +6,7 @@ import { authRouter } from './routes/auth.route.js'
 import {urlRouter} from './routes/url.route.js'
 import userRouter from './routes/user.route.js';
 
-import './workers/email.worker.js'; // for worker to run
+import './workers/email.worker.js'; // for worker to run //commenting this out cause ran out of free limits on upstash for redis cloud :(
 
 const PORT = process.env.PORT || 8080
 

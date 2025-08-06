@@ -1,9 +1,17 @@
 import { generateToken } from "../utils/jwt.js";
 import { NextFunction, Request, Response } from "express";
-import { LoginUserDTO, RegisterUserDTO, ResendEmailDTO, VerifyTokenDTO } from "../dtos/auth.dto.js";
+import {
+  LoginUserDTO,
+  RegisterUserDTO,
+  ResendEmailDTO,
+  VerifyTokenDTO,
+} from "../dtos/auth.dto.js";
 import bcrypt from "bcrypt";
-import prisma from '../libs/prisma.js'
-import { tokenForEmail, verifyEmailToken } from "../utils/email.tokengeneration.js";
+import prisma from "../libs/prisma.js";
+import {
+  tokenForEmail,
+  verifyEmailToken,
+} from "../utils/email.tokengeneration.js";
 import { bodyForEmailVerification } from "../utils/email.templates.js";
 import { sendMail } from "../utils/send.email.js";
 import { emailQueue } from "../queues/email.queue.js";
@@ -33,18 +41,29 @@ export const register = async (
       },
     });
 
-    const token = tokenForEmail({userId : newUser.id})
-    const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
+    const token = tokenForEmail({ userId: newUser.id });
+    const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
-
-    const html = bodyForEmailVerification(verificationURL)
-    const subject = "Please Verify your email!"
-    await emailQueue.add('sendVerificationEmail',{
-      to:newUser.email,
-      subject,
-      html
-    })
-    console.log('Email job added to queue');
+    const html = bodyForEmailVerification(verificationURL);
+    const subject = "Please Verify your email!";
+    await emailQueue.add(
+      "sendVerificationEmail",
+      {
+        to: newUser.email,
+        subject,
+        html,
+      },
+      {
+        attempts: 1, // 🔽 Reduce this
+        backoff: {
+          type: "fixed",
+          delay: 10000, // 10s
+        },
+        removeOnComplete: true,
+        removeOnFail: true,
+      }
+    );
+    console.log("Email job added to queue");
     // const mailSendInfo = await sendMail({
     //     to : newUser.email,
     //     subject,
@@ -58,7 +77,7 @@ export const register = async (
         name: newUser.name,
         email: newUser.email,
       },
-      verificationEmailInfo : "Queued to send the email"
+      verificationEmailInfo: "Queued to send the email",
     });
   } catch (error) {
     next(error);
@@ -77,10 +96,16 @@ export const login = async (
     const userFromDB = await prisma.user.findUnique({ where: { email } });
 
     if (!userFromDB) {
-      return next({ status: 404, message: `User not found with email: ${email}` });
+      return next({
+        status: 404,
+        message: `User not found with email: ${email}`,
+      });
     }
 
-    const isPassCorrect = await bcrypt.compare(password, userFromDB.passwordHash);
+    const isPassCorrect = await bcrypt.compare(
+      password,
+      userFromDB.passwordHash
+    );
 
     if (!isPassCorrect) {
       return next({ status: 400, message: "Incorrect password" });
@@ -99,69 +124,77 @@ export const login = async (
 };
 
 //resend email verification link controller
-export const resendToken = async (req:Request<{},{},ResendEmailDTO>,res:Response,next:NextFunction) :Promise<void> =>{
-  try{
-    const email = req.body.email
+export const resendToken = async (
+  req: Request<{}, {}, ResendEmailDTO>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const email = req.body.email;
 
-  const userFromDB = await prisma.user.findUnique({
-   where : {
-    email
-   }
-  })
-  if(!userFromDB){
-    return next({status : 404 , message : "Cant find any registered user with the provided email"})
-  }
-  const token = tokenForEmail({userId : userFromDB.id})
-  const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`
+    const userFromDB = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    if (!userFromDB) {
+      return next({
+        status: 404,
+        message: "Cant find any registered user with the provided email",
+      });
+    }
+    const token = tokenForEmail({ userId: userFromDB.id });
+    const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
-
-    const html = bodyForEmailVerification(verificationURL)
-    const subject = "Please Verify your email!"
+    const html = bodyForEmailVerification(verificationURL);
+    const subject = "Please Verify your email!";
     const mailSendInfo = await sendMail({
-        to : userFromDB.email,
-        subject,
-        html
-    })
+      to: userFromDB.email,
+      subject,
+      html,
+    });
 
     res.status(200).send({
-      success : true,
-      message :"Verification Link sent succesfully!",
-      verificationEmailInfo : {sentTo : mailSendInfo.accepted[0] || null}
-    })
-  }catch(e){
-    next(e)
+      success: true,
+      message: "Verification Link sent succesfully!",
+      verificationEmailInfo: { sentTo: mailSendInfo.accepted[0] || null },
+    });
+  } catch (e) {
+    next(e);
   }
+};
 
-}
+//verify token controller
+export const verifyEmailFromToken = async (
+  req: Request<{}, {}, {}, VerifyTokenDTO>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const token = req.query.token;
 
-//verify token controller 
-export const verifyEmailFromToken =  async (req:Request<{},{},{},VerifyTokenDTO>,res:Response,next:NextFunction) : Promise<void> =>{
- try{
-   const token = req.query.token 
+    if (!token) {
+      return next({ status: 400, message: "token is required" });
+    }
+    const decode = verifyEmailToken(token);
 
-   if(!token){
-    return next({status : 400,message:"token is required"})
-   }
-  const decode = verifyEmailToken(token)
+    const userId = decode.userId;
+    const userFromDB = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!userFromDB) {
+      return next({ status: 404, message: "Invalid Token" });
+    }
+    if (userFromDB.isEmailVerified) {
+      return next({ status: 200, message: "Email already verified" });
+    }
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isEmailVerified: true },
+    });
 
-  const userId = decode.userId
-  const userFromDB = await prisma.user.findUnique({
-    where : {id : userId}
-  })
-  if(!userFromDB){
-    return next({status:404,message : "Invalid Token"})
+    res.status(200).send({ message: "Email Verified Succesfully" });
+  } catch (err) {
+    next(err);
   }
-  if(userFromDB.isEmailVerified){
-    return next({status:200,message:"Email already verified"})
-  }
-  await prisma.user.update({
-    where : {id : userId},
-    data : { isEmailVerified : true}
-  })
-
-  res.status(200).send({message : "Email Verified Succesfully"}) 
- }catch(err){
-  next(err)
- }
-
-}
+};
