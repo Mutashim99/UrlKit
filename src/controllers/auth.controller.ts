@@ -110,6 +110,10 @@ export const login = async (
     if (!isPassCorrect) {
       return next({ status: 400, message: "Incorrect password" });
     }
+
+    if(!userFromDB.isEmailVerified){
+      return next({status : 400,message : "Email is not verified yet, you should verify your email before logging In!"})
+    }
     //generates a new token
     const token = generateToken({ userId: userFromDB.id });
 
