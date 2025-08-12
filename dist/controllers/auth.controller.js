@@ -32,10 +32,10 @@ export const register = async (req, res, next) => {
             subject,
             html,
         }, {
-            attempts: 1, // 🔽 Reduce this
+            attempts: 1,
             backoff: {
                 type: "fixed",
-                delay: 10000, // 10s
+                delay: 10000,
             },
             removeOnComplete: true,
             removeOnFail: true,
@@ -77,6 +77,7 @@ export const login = async (req, res, next) => {
         }
         //generates a new token
         const token = generateToken({ userId: userFromDB.id });
+        res.cookie;
         res.status(200).send({
             success: true,
             message: "Successfully logged in",

@@ -153,6 +153,9 @@ export const findBySlug = async (req, res, next) => {
             include: {
                 clicks: true,
             },
+            orderBy: {
+                createdAt: "desc"
+            }
         });
         res.status(200).send({ data: urlsForLocalHistory });
     }
