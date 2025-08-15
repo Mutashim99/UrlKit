@@ -110,9 +110,7 @@ export const deleteUrl = async (req, res, next) => {
                 id: urlId,
             },
         });
-        res
-            .status(200)
-            .json({
+        res.status(200).json({
             success: true,
             message: "URL and its clicks deleted",
             data: urlFromDbToDelete,
@@ -135,11 +133,9 @@ export const userInfo = async (req, res, next) => {
         });
         if (userFromDb) {
             res.status(200).send({
-                data: {
-                    success: true,
-                    user: userFromDb,
-                    message: "succesfully fetched user Info",
-                },
+                success: true,
+                user: userFromDb,
+                message: "succesfully fetched user Info",
             });
             return;
         }

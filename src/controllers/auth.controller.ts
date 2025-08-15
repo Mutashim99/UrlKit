@@ -71,6 +71,7 @@ export const register = async (
     // })
 
     res.status(201).send({
+      success : true,
       message: `${newUser.name} registered successfully`,
       data: {
         id: newUser.id,

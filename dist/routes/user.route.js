@@ -5,5 +5,5 @@ userRouter.get("/dashboard/urls", getAllUrl);
 userRouter.get("/dashboard/url/:urlId", getSingleUrlDetails);
 userRouter.patch("/dashboard/url/:urlId", updateStatus);
 userRouter.delete("/dashboard/url/:urlId", deleteUrl);
-userRouter.get("dashboard/me", userInfo);
+userRouter.get("/dashboard/me", userInfo);
 export default userRouter;
