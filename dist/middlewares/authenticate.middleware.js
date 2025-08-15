@@ -1,11 +1,10 @@
 import { verifyToken } from "../utils/jwt.js";
 export const authenticate = (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return next({ status: 401, message: "No Token Provided" });
+        const token = req.cookies.token;
+        if (!token) {
+            return next({ status: 401, message: "No Token Provided,UnAuthorized" });
         }
-        const token = authHeader.split(" ")[1];
         const payload = verifyToken(token);
         req.user = { userId: payload.userId };
         next();
@@ -16,9 +15,8 @@ export const authenticate = (req, res, next) => {
 };
 // this one is for allowing both the authenticated users and non authenticated users for making short urls without login users and logged in both so that logged in users Id can be fetched from the jwt
 export const optionalAuth = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.split(" ")[1];
+    const token = req.cookies.token;
+    if (token) {
         try {
             const decoded = verifyToken(token);
             req.user = decoded;

@@ -75,13 +75,20 @@ export const login = async (req, res, next) => {
         if (!isPassCorrect) {
             return next({ status: 400, message: "Incorrect password" });
         }
+        if (!userFromDB.isEmailVerified) {
+            return next({ status: 400, message: "Email is not verified yet, you should verify your email before logging In!" });
+        }
         //generates a new token
         const token = generateToken({ userId: userFromDB.id });
-        res.cookie;
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
         res.status(200).send({
             success: true,
             message: "Successfully logged in",
-            token,
         });
     }
     catch (error) {
