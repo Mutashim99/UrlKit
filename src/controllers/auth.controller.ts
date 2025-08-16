@@ -209,3 +209,13 @@ export const verifyEmailFromToken = async (
     next(err);
   }
 };
+
+
+//logout controller
+export const logout = async (req:Request,res:Response,next:NextFunction) : Promise<void> =>{
+  try{
+    res.clearCookie("token").send({message:"successfully logged out"})
+  }catch(e){
+    next(e)
+  }
+}

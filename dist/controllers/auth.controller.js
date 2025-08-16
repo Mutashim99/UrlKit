@@ -158,3 +158,12 @@ export const verifyEmailFromToken = async (req, res, next) => {
         next(err);
     }
 };
+//logout controller
+export const logout = async (req, res, next) => {
+    try {
+        res.clearCookie("token").send({ message: "successfully logged out" });
+    }
+    catch (e) {
+        next(e);
+    }
+};
