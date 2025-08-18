@@ -100,9 +100,8 @@ export const customShorten = async (
     res.status(201).send({
       success: true,
       message: "Custom short URL created successfully",
-      data: {
-        shortenUrl: `${process.env.FRONTEND_URL}/${newCustomShortUrl.shortSlug}`,
-      },
+      shortenUrl: `${process.env.FRONTEND_URL}/${newCustomShortUrl.shortSlug}`,
+      slug: customSlug
     });
   } catch (err) {
     next(err);
