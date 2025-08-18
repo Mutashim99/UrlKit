@@ -14,9 +14,15 @@ export const nonCustomShorten = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { originalUrl, expiresAt } = req.body;
+    const { expiresAt } = req.body;
+    let { originalUrl } = req.body;
+
     if (!originalUrl) {
       return next({ status: 400, message: "Url is required" });
+    }
+
+    if (!/^https?:\/\//i.test(originalUrl)) {
+      originalUrl = `http://${originalUrl}`; // default to http if no protocol
     }
     const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
     const userId = req.user?.userId;
@@ -52,9 +58,15 @@ export const customShorten = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { originalUrl, expiresAt, customSlug } = req.body;
+    const { expiresAt, customSlug } = req.body;
+    let { originalUrl } = req.body;
+
     if (!originalUrl) {
       return next({ status: 400, message: "Url is required" });
+    }
+
+    if (!/^https?:\/\//i.test(originalUrl)) {
+      originalUrl = `http://${originalUrl}`; // default to http if no protocol
     }
 
     const isSlugAvailable = await prisma.url.findUnique({
@@ -184,7 +196,7 @@ export const findBySlug = async (
         createdAt: "desc",
       },
     });
-    res.status(200).send({ data: urlsForLocalHistory });
+    res.status(200).send(urlsForLocalHistory);
   } catch (e) {
     next(e);
   }

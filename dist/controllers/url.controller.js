@@ -4,9 +4,13 @@ import axios from "axios";
 // url shortener controller for non custom slug POST /api/shorten
 export const nonCustomShorten = async (req, res, next) => {
     try {
-        const { originalUrl, expiresAt } = req.body;
+        const { expiresAt } = req.body;
+        let { originalUrl } = req.body;
         if (!originalUrl) {
             return next({ status: 400, message: "Url is required" });
+        }
+        if (!/^https?:\/\//i.test(originalUrl)) {
+            originalUrl = `http://${originalUrl}`; // default to http if no protocol
         }
         const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
         const userId = req.user?.userId;
@@ -38,9 +42,13 @@ export const nonCustomShorten = async (req, res, next) => {
 };
 export const customShorten = async (req, res, next) => {
     try {
-        const { originalUrl, expiresAt, customSlug } = req.body;
+        const { expiresAt, customSlug } = req.body;
+        let { originalUrl } = req.body;
         if (!originalUrl) {
             return next({ status: 400, message: "Url is required" });
+        }
+        if (!/^https?:\/\//i.test(originalUrl)) {
+            originalUrl = `http://${originalUrl}`; // default to http if no protocol
         }
         const isSlugAvailable = await prisma.url.findUnique({
             where: {
@@ -156,7 +164,7 @@ export const findBySlug = async (req, res, next) => {
                 createdAt: "desc",
             },
         });
-        res.status(200).send({ data: urlsForLocalHistory });
+        res.status(200).send(urlsForLocalHistory);
     }
     catch (e) {
         next(e);
