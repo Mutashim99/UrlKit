@@ -4,7 +4,7 @@ export interface NonCustomSlugShortenerDTO{
 }
 
 export interface CustomSlugShortenerDTO {
-    orignalUrl : string,
+    originalUrl : string,
     customSlug : string,
     expiresAt? : string | null
 }

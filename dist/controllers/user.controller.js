@@ -132,6 +132,7 @@ export const userInfo = async (req, res, next) => {
             },
         });
         if (userFromDb) {
+            res.setHeader("Cache-Control", "no-store");
             res.status(200).send({
                 success: true,
                 user: userFromDb,

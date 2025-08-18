@@ -6,6 +6,7 @@ import {
 import { generateUniqueSlug } from "../utils/randomslug.js";
 import prisma from "../libs/prisma.js";
 import axios from "axios";
+
 // url shortener controller for non custom slug POST /api/shorten
 export const nonCustomShorten = async (
   req: Request<{}, {}, NonCustomSlugShortenerDTO>,
@@ -37,9 +38,8 @@ export const nonCustomShorten = async (
     res.status(201).send({
       success: true,
       message: "succesfully created the random short url",
-      data: {
-        shortenUrl: `${process.env.FRONTEND_URL}/${created.shortSlug}`,
-      },
+      slug: randomSlug,
+      shortenUrl: `${process.env.FRONTEND_URL}/${created.shortSlug}`,
     });
   } catch (err) {
     next();
@@ -52,8 +52,8 @@ export const customShorten = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { orignalUrl, expiresAt, customSlug } = req.body;
-    if (!orignalUrl) {
+    const { originalUrl, expiresAt, customSlug } = req.body;
+    if (!originalUrl) {
       return next({ status: 400, message: "Url is required" });
     }
 
@@ -78,7 +78,7 @@ export const customShorten = async (
     }
     const newCustomShortUrl = await prisma.url.create({
       data: {
-        orignalUrl: orignalUrl,
+        orignalUrl: originalUrl,
         shortSlug: customSlug,
         userId: userId,
         isCustom: true,
@@ -180,9 +180,9 @@ export const findBySlug = async (
       include: {
         clicks: true,
       },
-      orderBy:{
-        createdAt : "desc"
-      }
+      orderBy: {
+        createdAt: "desc",
+      },
     });
     res.status(200).send({ data: urlsForLocalHistory });
   } catch (e) {

@@ -2,6 +2,9 @@ import { GoogleGenAI } from '@google/genai';
 export const checkUrlSafety = async (req, res, next) => {
     try {
         const url = req.body.url;
+        if (!url) {
+            next({ status: 400, message: "Url is required" });
+        }
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         const prompt = `
 You are a URL safety classification engine.
@@ -46,6 +49,7 @@ URL: ${url}
             category,
             message,
             raw: aiText.trim(),
+            submittedUrl: url
         });
     }
     catch (e) {

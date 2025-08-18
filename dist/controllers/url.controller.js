@@ -28,9 +28,8 @@ export const nonCustomShorten = async (req, res, next) => {
         res.status(201).send({
             success: true,
             message: "succesfully created the random short url",
-            data: {
-                shortenUrl: `${process.env.FRONTEND_URL}/${created.shortSlug}`,
-            },
+            slug: randomSlug,
+            shortenUrl: `${process.env.FRONTEND_URL}/${created.shortSlug}`,
         });
     }
     catch (err) {
@@ -39,8 +38,8 @@ export const nonCustomShorten = async (req, res, next) => {
 };
 export const customShorten = async (req, res, next) => {
     try {
-        const { orignalUrl, expiresAt, customSlug } = req.body;
-        if (!orignalUrl) {
+        const { originalUrl, expiresAt, customSlug } = req.body;
+        if (!originalUrl) {
             return next({ status: 400, message: "Url is required" });
         }
         const isSlugAvailable = await prisma.url.findUnique({
@@ -64,7 +63,7 @@ export const customShorten = async (req, res, next) => {
         }
         const newCustomShortUrl = await prisma.url.create({
             data: {
-                orignalUrl: orignalUrl,
+                orignalUrl: originalUrl,
                 shortSlug: customSlug,
                 userId: userId,
                 isCustom: true,
@@ -154,8 +153,8 @@ export const findBySlug = async (req, res, next) => {
                 clicks: true,
             },
             orderBy: {
-                createdAt: "desc"
-            }
+                createdAt: "desc",
+            },
         });
         res.status(200).send({ data: urlsForLocalHistory });
     }

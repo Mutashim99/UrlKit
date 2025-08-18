@@ -77,7 +77,10 @@ export const login = async (req, res, next) => {
             return next({ status: 400, message: "Incorrect password" });
         }
         if (!userFromDB.isEmailVerified) {
-            return next({ status: 400, message: "Email is not verified yet, you should verify your email before logging In!" });
+            return next({
+                status: 400,
+                message: "Email is not verified yet, you should verify your email before logging In!",
+            });
         }
         //generates a new token
         const token = generateToken({ userId: userFromDB.id });
@@ -161,7 +164,12 @@ export const verifyEmailFromToken = async (req, res, next) => {
 //logout controller
 export const logout = async (req, res, next) => {
     try {
-        res.clearCookie("token").send({ message: "successfully logged out" });
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+        res.status(200).json({ message: "successfully logged out" });
     }
     catch (e) {
         next(e);
