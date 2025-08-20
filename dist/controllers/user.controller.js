@@ -3,12 +3,18 @@ import prisma from "../libs/prisma.js";
 export const getAllUrl = async (req, res, next) => {
     try {
         const userId = req.user?.userId;
+        if (!userId) {
+            return next({ status: 401, message: "UnAuthorized" });
+        }
         const urls = await prisma.url.findMany({
             where: {
                 userId,
             },
             include: {
                 clicks: true,
+            },
+            orderBy: {
+                createdAt: "desc",
             },
         });
         res.send(urls);

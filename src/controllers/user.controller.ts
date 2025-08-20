@@ -10,12 +10,18 @@ export const getAllUrl = async (
 ): Promise<void> => {
   try {
     const userId = req.user?.userId;
+    if(!userId){
+      return next({ status: 401, message: "UnAuthorized" })
+    }
     const urls = await prisma.url.findMany({
       where: {
         userId,
       },
       include: {
         clicks: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 

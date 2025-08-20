@@ -6,7 +6,7 @@
 
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma- client-js"
 }
 
 datasource db {
@@ -50,7 +50,7 @@ model Click{
   city      String?
 
   urlId String
-  url Url @relation(fields: [urlId],references: [id])
+  url Url @relation(fields: [urlId],references: [id],onDelete: Cascade)
 }
 
 enum UrlStatus {
