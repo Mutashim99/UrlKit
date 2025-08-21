@@ -13,7 +13,7 @@ import cors from "cors";
 
 import "./workers/email.worker.js"; // for worker to run //commenting this out cause ran out of free limits on upstash for redis cloud :(
 
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT) || 8080;
 
 const app = express();
 app.use(express.json());
@@ -29,6 +29,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/url", optionalAuth, urlRouter);
 app.use("/api/user", authenticate, userRouter);
 app.use(errorHandler);
-app.listen(PORT, () => {
-  console.log(`running on ${PORT} `);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
