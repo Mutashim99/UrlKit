@@ -24,6 +24,15 @@ export const register = async (
 ): Promise<void> => {
   try {
     const { name, email, password } = req.body;
+    if (password.length < 8) {
+      res
+        .status(400)
+        .json({
+          success: false,
+          message: "Password must be at least 8 characters",
+        });
+      return
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });

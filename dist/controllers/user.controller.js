@@ -1,4 +1,5 @@
 import prisma from "../libs/prisma.js";
+import bcrypt from "bcrypt";
 // get all the users created urls
 export const getAllUrl = async (req, res, next) => {
     try {
@@ -48,9 +49,7 @@ export const getSingleUrlDetails = async (req, res, next) => {
         res.status(200).send({
             success: true,
             message: "Succesfully fetched the url details",
-            data: {
-                ...urlFromDb,
-            },
+            urlFromDb,
         });
     }
     catch (e) {
@@ -147,6 +146,99 @@ export const userInfo = async (req, res, next) => {
             return;
         }
         return next({ status: 400, message: "Cant find user" });
+    }
+    catch (e) {
+        next(e);
+    }
+};
+export const updateUserName = async (req, res, next) => {
+    try {
+        const userId = req.user?.userId;
+        const { newUserName } = req.body;
+        if (!userId) {
+            return next({ status: 401, message: "unAuthorized" });
+        }
+        if (!newUserName) {
+            return next({
+                status: 400,
+                message: "New username is required to update!",
+            });
+        }
+        const updatedUser = await prisma.user.update({
+            where: {
+                id: userId,
+            },
+            data: {
+                name: newUserName,
+            },
+            select: { id: true, name: true, email: true },
+        });
+        res.status(200).json({
+            success: true,
+            message: "Username updated successfully",
+            user: updatedUser,
+        });
+    }
+    catch (e) {
+        next(e);
+    }
+};
+export const updatePassword = async (req, res, next) => {
+    try {
+        const userId = req.user?.userId;
+        const { newPassword, currentPassword } = req.body;
+        if (!userId) {
+            return next({ status: 401, message: "Unauthorized" });
+        }
+        if (!newPassword || !currentPassword) {
+            return next({
+                status: 400,
+                message: "Both current and new password are required",
+            });
+        }
+        const currentUser = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            },
+        });
+        if (!currentUser) {
+            return next({ status: 404, message: "User not found" });
+        }
+        const checkOldPassword = await bcrypt.compare(currentPassword, currentUser?.passwordHash);
+        if (!checkOldPassword) {
+            res
+                .status(400)
+                .send({ succes: false, message: "current password does not match" });
+            return;
+        }
+        if (newPassword.length < 8) {
+            res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters",
+            });
+            return;
+        }
+        const newPasswordHashed = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({
+            where: {
+                id: userId,
+            },
+            data: {
+                passwordHash: newPasswordHashed,
+            },
+        });
+        res.status(200).send({
+            success: true,
+            message: "succesfully upadted password",
+        });
+    }
+    catch (e) {
+        next(e);
+    }
+};
+const deleteUserAccount = async (req, res, next) => {
+    try {
+        await prisma.user.de;
     }
     catch (e) {
         next(e);
