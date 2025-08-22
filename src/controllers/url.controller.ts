@@ -168,6 +168,10 @@ export const redirectToUrl = async (
         city,
       },
     });
+    if (req.query.preview === "true") {
+     res.json({ originalUrl: originalUrlFromDB.orignalUrl });
+     return
+    }
 
     res.redirect(301, originalUrlFromDB.orignalUrl);
   } catch (err) {
