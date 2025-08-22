@@ -10,9 +10,7 @@ export const register = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
         if (password.length < 8) {
-            res
-                .status(400)
-                .json({
+            res.status(400).json({
                 success: false,
                 message: "Password must be at least 8 characters",
             });
@@ -96,7 +94,7 @@ export const login = async (req, res, next) => {
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.status(200).send({
@@ -176,7 +174,7 @@ export const logout = async (req, res, next) => {
         res.clearCookie("token", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "none",
         });
         res.status(200).json({ message: "successfully logged out" });
     }
