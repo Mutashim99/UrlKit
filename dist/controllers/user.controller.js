@@ -236,9 +236,18 @@ export const updatePassword = async (req, res, next) => {
         next(e);
     }
 };
-const deleteUserAccount = async (req, res, next) => {
+export const deleteUserAccount = async (req, res, next) => {
     try {
-        await prisma.user.de;
+        const userId = req.user?.userId;
+        if (!userId) {
+            return next({ status: 401, message: "Unauthorized" });
+        }
+        await prisma.user.delete({
+            where: {
+                id: userId,
+            },
+        });
+        res.status(200).send({ success: true, message: "Successfully deleted users account" });
     }
     catch (e) {
         next(e);

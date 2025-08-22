@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { getAllUrl, getSingleUrlDetails, updateStatus, deleteUrl, userInfo, updateUserName, updatePassword } from "../controllers/user.controller.js";
+import { getAllUrl, getSingleUrlDetails, updateStatus, deleteUrl, userInfo, updateUserName, updatePassword, deleteUserAccount } from "../controllers/user.controller.js";
 const userRouter = Router();
 userRouter.get("/dashboard/urls", getAllUrl);
 userRouter.get("/dashboard/url/:urlId", getSingleUrlDetails);
 userRouter.patch("/dashboard/url/:urlId", updateStatus);
 userRouter.delete("/dashboard/url/:urlId", deleteUrl);
 userRouter.get("/dashboard/me", userInfo);
-userRouter.post("/dashboard/me/update-username", updateUserName);
-userRouter.post("/dashboard/me/update-password", updatePassword);
+userRouter.patch("/dashboard/me/username", updateUserName);
+userRouter.patch("/dashboard/me/password", updatePassword);
+userRouter.delete("/dashboard/me/", deleteUserAccount);
 export default userRouter;
