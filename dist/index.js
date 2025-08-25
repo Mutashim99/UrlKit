@@ -7,6 +7,7 @@ import { authRouter } from "./routes/auth.route.js";
 import { urlRouter } from "./routes/url.route.js";
 import userRouter from "./routes/user.route.js";
 import cors from "cors";
+import { globalLimiter, authLimiter } from "./middlewares/ratelimiter.js";
 import "./workers/email.worker.js"; // for worker to run //commenting this out cause ran out of free limits on upstash for redis cloud :(
 const PORT = Number(process.env.PORT) || 8080;
 const app = express();
@@ -16,7 +17,8 @@ app.use(cors({
     credentials: true,
 }));
 app.use(cookieParser());
-app.use("/api/auth", authRouter);
+app.use(globalLimiter);
+app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/url", optionalAuth, urlRouter);
 app.use("/api/user", authenticate, userRouter);
 app.use(errorHandler);
