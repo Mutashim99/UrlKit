@@ -13,7 +13,7 @@ const PORT = Number(process.env.PORT) || 8080;
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "https://urlkit.vercel.app",
+    origin: process.env.FRONTEND_URL || "https://www.urlkit.site",
     credentials: true,
 }));
 app.use(cookieParser());

@@ -76,12 +76,12 @@ export const customShorten = async (
     });
     const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
     const userId = req.user?.userId;
-    if (!userId || userId === undefined) {
-      return next({
-        status: 401,
-        message: "Unauthorize, User must be logged in to create custom urls",
-      });
-    }
+    // if (!userId || userId === undefined) {
+    //   return next({
+    //     status: 401,
+    //     message: "Unauthorize, User must be logged in to create custom urls",
+    //   });
+    // }
     if (isSlugAvailable) {
       return next({
         status: 400,
